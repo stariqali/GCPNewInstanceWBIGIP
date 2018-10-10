@@ -1,0 +1,6 @@
+---
+- hosts: bigips
+  gather_facts: false
+  remote_user: admin
+  roles:
+    - onboardingBIGIP

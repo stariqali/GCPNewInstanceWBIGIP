@@ -1,0 +1,223 @@
+---
+- name: License BIG-IP using a key
+  bigip_device_license:
+     accept_eula: yes
+     license_key: "{{ license_1 }}"
+     provider:
+       server: "{{ hostname_1  }}"
+       server_port: 8443
+       validate_certs: no
+       user:  "{{ admin_1 }}"
+       password: "{{ password_1 }}"
+  delegate_to: localhost
+
+- name: Wait for SSH to come up
+  wait_for_connection:
+     delay=2
+     timeout=90
+
+
+- name: Configure NTP server on BIG-IP
+  bigip_device_ntp:
+    ntp_servers: "{{ ntp_servers }}"
+    provider:
+       server: "{{ server_1 }}"
+       server_port: 8443
+       validate_certs: no
+       user: "{{ admin_1 }}"
+       password: "{{ password_1 }}"
+    timezone: America/Chicago
+  delegate_to: localhost
+
+- name: Configure BIG-IP hostname
+  bigip_hostname:
+    hostname: "{{ hostname_1 }}"
+    provider:
+       server: "{{ server_1 }}"
+       server_port: 8443
+       validate_certs: no
+       user: "{{ admin_1 }}"
+       password: "{{ password_1 }}"
+  delegate_to: localhost
+
+- name: Manage SSHD setting on BIG-IP
+  bigip_device_sshd:
+    banner: enabled
+    banner_text: "{{ banner_text }}"
+    provider:
+      server: "{{ server_1 }}"
+      server_port: 8443
+      validate_certs: no
+      user: "{{ admin_1 }}"
+      password: "{{ password_1 }}"
+  delegate_to: localhost
+
+- name: Manage BIG-IP DNS settings
+  bigip_device_dns:
+    name_servers: "{{ dns_servers }}"
+    provider:
+      server: "{{ server_1 }}"
+      server_port: 8443
+      validate_certs: no
+      user: "{{ admin_1 }}"
+      password: "{{ password_1 }}"
+    search: "{{ dns_search_domains }}"
+    ip_version: "{{ ip_version }}"
+  delegate_to: localhost
+
+- name: Manage BIGIP module provisioning
+  bigip_provision:
+    module: "{{ item.module }}"
+    level: "{{ item.level }}"
+    provider:
+      server: "{{ server_1 }}"
+      server_port: 8443
+      validate_certs: no
+      user: "{{ admin_1 }}"
+      password: "{{ password_1 }}"
+  with_items: "{{ required_modules }}"
+  delegate_to: localhost
+
+#- name: Configure VLANs on the BIG-IP
+#  bigip_vlan:
+#    name: "{{ item.name }}"
+#    provider:
+#      server: "{{ server_1 }}"
+#      server_port: 8443
+#      validate_certs: no
+#      user: "{{ admin_1 }}"
+#      password: "{{ password_1 }}"
+#    tag: "{{ item.tag }}"
+#    tagged_interface: "{{ item.interface }}"
+#  with_items: "{{ vlan_information }}"
+#  delegate_to: localhost
+
+#- name: Configure SELF-IPs on the BIG-IP
+#  bigip_selfip:
+#    name: "{{ item.name }}"
+#    address: "{{ item.address }}"
+#    netmask: "{{ item.netmask }}"
+#    vlan: "{{ item.vlan }}"
+#    allow_service: "{{item.allow_service}}"
+#    provider:
+#      server: "{{ server_1 }}"
+#      server_port: 8443
+#      validate_certs: no
+#      user: "{{ admin_1 }}"
+#      password: "{{ password_1 }}"
+#  with_items: "{{ selfip_information }}"
+#  delegate_to: localhost
+
+
+- name: Manage Global Settings
+  bigip_sys_global:
+    gui_setup: no
+    provider:
+      server: "{{ server_1 }}"
+      server_port: 8443
+      validate_certs: no
+      user: "{{ admin_1 }}"
+      password: "{{ password_1 }}"
+    security_banner: yes
+    banner_text: "{{ banner_text }}"
+    state: present
+  delegate_to: localhost
+
+- name: Manage BIGIP module provisioning
+  bigip_provision:
+    module: "{{ item.module }}"
+    level: "{{ item.level }}"
+    provider:
+      server: "{{ server_1 }}"
+      server_port: 8443
+      validate_certs: no
+      user: "{{ admin_1 }}"
+      password: "{{ password_1 }}"
+  with_items: "{{ required_modules }}"
+  delegate_to: localhost
+
+- name: Add node
+  bigip_node:
+    address: "{{ item.address }}"
+    name: "{{ item.name }}"
+    provider:
+      server: "{{ server_1 }}"
+      server_port: 8443
+      validate_certs: no
+      user: "{{ admin_1 }}"
+      password: "{{ password_1 }}"
+    state: present
+  with_items: "{{ node_info }}"
+  delegate_to: localhost
+
+- name: Add pool
+  bigip_pool:
+    name: "{{ item.name }}"
+    provider:
+      server: "{{ server_1 }}"
+      server_port: 8443
+      validate_certs: no
+      user: "{{ admin_1 }}"
+      password: "{{ password_1 }}"
+    state: present
+    monitors: "{{ item.monitors }}"
+  with_items: "{{ pool_info }}"
+  delegate_to: localhost
+
+- name: Add pool member
+  bigip_pool_member:
+    pool: "web-pool"
+    name: "{{ item.name }}"
+    port: "{{ item.port }}"
+    provider:
+      server: "{{ server_1 }}"
+      server_port: 8443
+      validate_certs: no
+      user: "{{ admin_1 }}"
+      password: "{{ password_1 }}"
+    state: present
+  with_items: "{{ add_member }}"
+  delegate_to: localhost
+
+- name: Add virtual server
+  bigip_virtual_server:
+    provider:
+      server: "{{ server_1 }}"
+      server_port: 8443
+      validate_certs: no
+      user: "{{ admin_1 }}"
+      password: "{{ password_1 }}"
+    state: present
+    partition: Common
+    name: "{{ item.name }}"
+    destination: "{{ item.destination }}"
+    port: "{{ item.port }}"
+    pool: "{{ item.pool }}"
+    snat: Automap
+    description: Test Virtual Server
+    profiles:
+      - http
+      - name: clientssl
+        context: server-side
+  with_items: "{{ add_vip }}"
+  delegate_to: localhost
+
+- name: Add redirect virtual server
+  bigip_virtual_server:
+    provider:
+      server: "{{ server_1 }}"
+      server_port: 8443
+      validate_certs: no
+      user: "{{ admin_1 }}"
+      password: "{{ password_1 }}"
+    state: present
+    partition: Common
+    name: "{{ item.name }}"
+    destination: "{{ item.destination }}"
+    port: "{{ item.port }}"
+    irules: "{{ item.irule }}"
+    description: Redirect Test Virtual Server
+    profiles:
+      - http
+  with_items: "{{ add_vip_redirect }}"
+  delegate_to: localhost

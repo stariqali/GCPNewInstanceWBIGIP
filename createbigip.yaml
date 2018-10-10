@@ -1,0 +1,105 @@
+- name: Create an instance
+  hosts: localhost
+  gather_facts: no
+  connection: local
+  vars:
+      gcp_project: my-gcp-1234-xy-z-consult #enter your gcp project name
+      gcp_cred_kind: serviceaccount
+      gcp_cred_file: /home/ansible/my_account.json # path to your json credentials file you downloaded earlier
+      zone: "zone_info"  #type your new gcp ve zone information
+      region: "region_info" #type your new gcp ve region information
+      ve_name: nonprod-bigip1  #Type your VE name
+      disk_instance: nonprod-bigip1
+      test_address: nonprod-bigip1
+      service_account_email: user@developer.account.com #type your service account email
+      tags: allowhttpsfrom #enter any pertinent tags for bigip build
+
+  tasks:
+   - name: create a disk
+     gcp_compute_disk:
+         name: "{{ disk_instance }}"
+         size_gb: 82
+         source_image: 'projects/f5-7626-networks-public/global/images/f5-byol-bigip-13-1-1-0-0-4-all-2slot'
+         zone: "{{ zone }}"
+         project: "{{ gcp_project }}"
+         auth_kind: "{{ gcp_cred_kind }}"
+         service_account_file: "{{ gcp_cred_file }}"
+         scopes:
+           - https://www.googleapis.com/auth/compute
+         state: present
+     register: disk
+   - name: create a network
+     gcp_compute_network:
+         #You can use an existing VPC network without the need to create a new one
+         name: 'default'
+         project: "{{ gcp_project }}"
+         auth_kind: "{{ gcp_cred_kind }}"
+         service_account_file: "{{ gcp_cred_file }}"
+         scopes:
+           - https://www.googleapis.com/auth/compute
+         state: present
+     register: network
+   - name: create an address
+     gcp_compute_address:
+         name: "{{ test_address }}"
+         region: "{{ region }}"
+         project: "{{ gcp_project }}"
+         auth_kind: "{{ gcp_cred_kind }}"
+         service_account_file: "{{ gcp_cred_file }}"
+         scopes:
+           - https://www.googleapis.com/auth/compute
+         state: present
+     register: address
+   - name: create an instance
+     gcp_compute_instance:
+         state: present
+         metadata: {}
+         name: "{{ ve_name }}"
+         machine_type: n1-standard-4
+         network_interfaces:
+             - network: "{{ network }}"
+               access_configs:
+                 - name: 'External NAT'
+                   nat_ip: "{{ address }}"
+                   type: 'ONE_TO_ONE_NAT'
+         disks:
+           - auto_delete: true
+             boot: true
+             source: "{{ disk }}"
+         zone: "{{ zone }}"
+         project: "{{ gcp_project }}"
+         tags:
+           items: "{{ item }}"
+         auth_kind: "{{ gcp_cred_kind }}"
+         service_account_file: "{{ gcp_cred_file }}"
+         scopes:
+           - https://www.googleapis.com/auth/compute
+     with_items:
+       - https-server
+     register: gce-bigip
+
+   - name: Wait for SSH to come up
+     wait_for_connection:
+       delay=2
+       timeout=60
+
+
+   - name: add tags to an instance
+     gce_tag:
+         instance_name: "{{ ve_name }}"
+         pem_file: "{{ gcp_cred_file }}"
+         tags: "{{ tags }}"
+         project_id: "{{ gcp_project }}"
+         service_account_email: "{{ service_account_email }}"
+         zone: "{{ zone }}"
+         state: present
+
+   -  name: update passwords
+      pause:
+        prompt: "Make sure admin and root accounts have been updated"
+
+- name: Onboard an F5
+  hosts: localhost
+  gather_facts: no
+  roles:
+    - onboardingBIGIP

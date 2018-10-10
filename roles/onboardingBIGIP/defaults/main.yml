@@ -1,0 +1,98 @@
+---
+admin_1: admin
+password_1: secret
+password_2: admin
+root_1: CLIpassword
+
+banner_text: "--------Welcome to Onboarding BIGIP----------"
+
+#update both entries using new bigip name
+hostname_1: 'nonprod-bigip1'
+server_1: 'nonprod-bigip1'
+
+#insert new license key
+license_1: 'xxxxx-xxxxx-xxxxx-xxxxx-xxxxx'
+
+
+ntp_servers:
+ - '172.27.1.1'
+ - '172.27.1.2'
+
+dns_servers:
+ - '8.8.8.8'
+ - '4.4.4.4'
+
+dns_search_domains:
+ - 'local'
+ - 'localhost'
+
+ip_version: 4
+
+vlan_information:
+#- name: 'External'
+#  tag: '10'
+#  interface: '1.1'
+ - name: 'Internal'
+   tag: '11'
+   interface: '1.0'
+
+
+selfip_information:
+#- name: 'External-SelfIP'
+#  address: '10.168.68.5'
+#  netmask: '255.255.255.0'
+#  vlan: 'External'
+#  allow_service: 'default'
+ - name: 'Internal-SelfIP'
+   address: '10.138.0.2'
+   netmask: '255.255.255.255'
+   vlan: 'internal'
+   allow_service: 'default'
+
+required_modules:
+ - module: ltm
+   level: nominal
+ - module: gtm
+   level: nominal
+
+module_names:
+ - ltm
+ - gtm
+mod_level: nominal
+
+node_info:
+ - address: 192.168.68.140
+   name: web01.internal
+ - address: 192.168.68.141
+   name: web02.internal
+ - address: 192.168.68.142
+   name: web03.internal
+ - address: 192.168.68.143
+   name: web04.internal
+
+pool_info:
+ - name: web-pool
+   monitors: http
+
+add_member:
+ - name: web01.internal
+   port: 80
+ - name: web02.internal
+   port: 80
+ - name: web03.internal
+   port: 80
+ - name: web04.internal
+   port: 80
+
+
+add_vip:
+ - name: web_vip_https
+   destination: 10.10.20.120
+   port: 443
+   pool: web-pool
+
+add_vip_redirect:
+ - name: web_vip_http
+   destination: 10.10.20.120
+   port: 80
+   irule: _sys_https_redirect

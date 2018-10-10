@@ -1,0 +1,6 @@
+plugin: gcp_compute
+projects:
+  - <your GCP project name>
+filters:
+auth_kind: serviceaccount #enter account type
+service_account_file: /home/ansible/my_account.json #path to your json service account file
