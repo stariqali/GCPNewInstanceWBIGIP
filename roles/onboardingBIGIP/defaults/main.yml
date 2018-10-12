@@ -1,8 +1,6 @@
 ---
 admin_1: admin
 password_1: secret
-password_2: admin
-root_1: CLIpassword
 
 banner_text: "--------Welcome to Onboarding BIGIP----------"
 
