@@ -95,7 +95,7 @@
 
    -  name: update passwords
       pause:
-        prompt: "Make sure admin and root accounts have been updated"
+        prompt: "Update admin and root accounts passwords"
 
 - name: Onboard an F5
   hosts: localhost
