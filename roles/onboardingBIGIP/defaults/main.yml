@@ -4,9 +4,8 @@ password_1: secret
 
 banner_text: "--------Welcome to Onboarding BIGIP----------"
 
-#update both entries using new bigip name
+#update hostname_1 using bigip's fully qualified domain name
 hostname_1: 'nonprod-bigip1'
-server_1: 'nonprod-bigip1'
 
 #insert new license key
 license_1: 'xxxxx-xxxxx-xxxxx-xxxxx-xxxxx'
