@@ -123,19 +123,6 @@
     state: present
   delegate_to: localhost
 
-- name: Manage BIGIP module provisioning
-  bigip_provision:
-    module: "{{ item.module }}"
-    level: "{{ item.level }}"
-    provider:
-      server: "{{ hostname_1 }}"
-      server_port: 8443
-      validate_certs: no
-      user: "{{ admin_1 }}"
-      password: "{{ password_1 }}"
-  with_items: "{{ required_modules }}"
-  delegate_to: localhost
-
 - name: Add node
   bigip_node:
     address: "{{ item.address }}"
