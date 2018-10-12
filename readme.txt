@@ -10,17 +10,14 @@ auth_kind: serviceaccount #enter account type
 service_account_file: /home/ansible/my_account.json #path to your json service account file
 
 3. Go to ../GCPnewInstanceRole/roles/onboardingBIGIP/defaults/main.yml >  and update following variables
-	a. admin_1 #bigip admin account username
-	b. password_1 #bigip admin account password
-	c. password_2
-	d. root_1 # root password
-	e. banner_text
-	f. hostname_1 #bigip hostname
-	g. server_1   #bigip hostname
-	h. license_1  #license registration keys
-
-	Also review and update application information
-
+   a. admin_1 #bigip admin account username
+   b. password_1 #bigip admin account password
+   c. root_1 # root password
+   d. banner_text
+   e. hostname_1 #bigip hostname
+   f. license_1  #license registration keys
+ 
+ Also review and update application information
 
 4. Go to ../GCPnewInstanceRole/createbigip.yaml and update following variables
     a. gcp_project: my-gcp-1234-xy-z-consult #enter your gcp project name
