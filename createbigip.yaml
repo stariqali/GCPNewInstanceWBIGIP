@@ -11,7 +11,6 @@
       ve_name: nonprod-bigip1  #Type your VE name
       disk_instance: nonprod-bigip1
       test_address: nonprod-bigip1
-      service_account_email: user@developer.account.com #type your service account email
       tags: allowhttpsfrom #enter any pertinent tags for bigip build
 
   tasks:
